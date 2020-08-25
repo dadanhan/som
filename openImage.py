@@ -6,25 +6,39 @@
 
 #run script using python3 
 
-#SOM implementation by Daniel Han 24/8/2020
+#SOM implementation for automated image segmentation by Daniel Han 24/8/2020
 
 import cv2
 import numpy as np
 import sys
 
-def main(argv):
-    
-    im = cv2.imread(argv[1],-1)     #read in image
-    im_scaled = np.array(cv2.normalize(im,dst=None,alpha=0,beta=65535,norm_type=cv2.NORM_MINMAX),dtype='uint16')     #scale image
-    #print values of im
-    print(im_scaled)
-    #display image on screen
-    winName = "test"        #display window name
+def show_image(winName,image,width,height):
     cv2.namedWindow(winName,cv2.WINDOW_NORMAL)      #create window
-    cv2.resizeWindow(winName,600,600)       #resize window
-    cv2.imshow(winName,im_scaled)       #show image
+    cv2.resizeWindow(winName,width,height)       #resize window
+    cv2.imshow(winName,image)       #show image
     cv2.waitKey(0)      #delete window if button pressed
     cv2.destroyAllWindows()     #free all windows
+
+def main(argv):
+    im = cv2.imread(argv[1],-1)     #read in image
+    im_scaled = np.array(cv2.normalize(im,dst=None,alpha=0,beta=65535,norm_type=cv2.NORM_MINMAX),dtype='uint16')     #scale image
+   
+    #print values of im
+    # print(im_scaled)
+    #get shape of im
+    r,c = im.shape
+    print(r,c)
+
+    #display image on screen
+    show_image("test",im_scaled,600,600)
+
+    #create a kernel for looking at a local area in image
+    ksize = 11
+    kernel = np.ones((ksize,ksize))
+    gap = int(np.ceil(ksize/2 -1))
+    somim = np.zeros((r-gap,c-gap))
+
+    show_image("test",newim,600,600)
 
 if __name__=="__main__":
     main(sys.argv)
