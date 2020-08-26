@@ -10,6 +10,8 @@
 import cv2
 import numpy as np
 import sys
+import random
+import matplotlib.pyplot as plt
 
 #function to show image in a rescaled opencv window
 def show_image(winName,image,width,height):
@@ -21,11 +23,18 @@ def show_image(winName,image,width,height):
 
 #function to sample a point in image that is ksize by ksize pixels big
 def sample_image(image,gap,kernel):
-    #make sure there are no sample repeats from previous
     #brighter parts are sampled with higher probability using image histogram
-    some_r = 100 #temp r random
-    some_c = 100 #temp c random
-    return image[(some_r-gap):(some_r+gap+1),(some_c-gap):(some_c+gap+1)]
+    #make image co-ordinates to sample and image pixel intensities
+    r,c = image.shape
+    coords = []
+    weights = []
+    for i in range(gap,r-gap):
+        for j in range(gap,c-gap):
+            coords.append((i,j))
+            weights.append(float(image[i][j]))
+    #sample using weights obtained from pixel intensities
+    [(sel_r,sel_c)] = random.choices(coords,weights)
+    return sel_r,sel_c,image[(sel_r-gap):(sel_r+gap+1),(sel_c-gap):(sel_c+gap+1)]
 
 #function for running competitive learning
 def competitive_learn_image(image,ksize,nrv,reps,kernel):
@@ -33,14 +42,18 @@ def competitive_learn_image(image,ksize,nrv,reps,kernel):
     r,c = image.shape
     #create a kernel for looking at a local area in image
     gap = int(np.ceil(ksize/2 -1))
-    print(gap)
+    # print(gap)
     somim = np.zeros((r-gap,c-gap))
     #initialize reference vectors with random numbers in refv between lowest and highest values in image
     refv = np.random.randint(np.amin(image),np.amax(image),size=(nrv,ksize*ksize))
     #loop as many times as reps through different points in image to move weights and learn competitively
     for t in range(0,reps):
         #sample a random point in image 
-        sample = sample_image(image,gap,kernel)
+        s_r,s_c,sample = sample_image(image,gap,kernel)
+        #take this random point and measure distance with reference vectors 
+        #select best and alter
+        #alter others
+        
     return somim
 
 def main(argv):
