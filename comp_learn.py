@@ -36,8 +36,19 @@ def sample_image(image,gap,kernel):
     [(sel_r,sel_c)] = random.choices(coords,weights)
     return sel_r,sel_c,image[(sel_r-gap):(sel_r+gap+1),(sel_c-gap):(sel_c+gap+1)]
 
+#function to measure distance between random sample and reference vectors
+def find_distances(sample,refv,ksize,gap):
+    #sample is a matrix with odd
+    print(sample)
+    #the middle selected pixel is located
+    print(sample[gap,gap])
+    #the reference vectors are
+    print(refv)
+
 #function for running competitive learning
 def competitive_learn_image(image,ksize,nrv,reps,kernel):
+    if ksize % 2 == 0:
+        raise Exception("Variable ksize must be odd")
     #get shape of image
     r,c = image.shape
     #create a kernel for looking at a local area in image
@@ -50,9 +61,10 @@ def competitive_learn_image(image,ksize,nrv,reps,kernel):
     for t in range(0,reps):
         #sample a random point in image 
         s_r,s_c,sample = sample_image(image,gap,kernel)
-        #take this random point and measure distance with reference vectors 
-        #select best and alter
-        #alter others
+        #take this random point and measure distance with reference vectors
+        dists = find_distances(sample,refv,ksize,gap)
+        #select best refv and reward
+        #punish others refv
         
     return somim
 
@@ -67,7 +79,7 @@ def main(argv):
     ksize = 3
     nrv = 4
     # somim = competitive_learn_image(im,ksize,nrv,reps=10,kernel=np.ones((ksize,ksize)))
-    somim = competitive_learn_image(im,ksize,nrv,reps=10,kernel=np.ones((ksize,ksize)))
+    somim = competitive_learn_image(im,ksize,nrv,reps=1,kernel=np.ones((ksize,ksize)))
     
 if __name__=="__main__":
     main(sys.argv)
