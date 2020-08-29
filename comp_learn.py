@@ -5,7 +5,6 @@
 # git push origin master
 
 #run script using python3 
-
 #SOM implementation for automated image segmentation by Daniel Han 24/8/2020
 import cv2
 import numpy as np
@@ -51,6 +50,14 @@ def find_distances(sample,refv,ksize,gap):
     # print(sample_vec[ksize*gap+gap])
     return dist
 
+#function to reward the closest reference vector
+def reward(refv,dists,mindist_index):
+    #do something with closest refv
+
+#function to punish the non-closest reference vector
+def punish(refv,dists,mindist_index):
+    #do something with non-closest refv's
+
 #function for running competitive learning
 def competitive_learn_image(image,ksize,nrv,reps,kernel):
     if ksize % 2 == 0:
@@ -71,9 +78,9 @@ def competitive_learn_image(image,ksize,nrv,reps,kernel):
         dists = find_distances(sample,refv,ksize,gap)
         mindist_index = np.where(dists == min(dists))[0][0]
         #select best refv and reward
-        
+        reward(refv,dists,mindist_index)
         #punish others refv
-        
+        punish(refv,dists,mindist_index)
     return somim
 
 def main(argv):
