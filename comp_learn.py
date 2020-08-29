@@ -34,16 +34,22 @@ def sample_image(image,gap,kernel):
             weights.append(float(image[i][j]))
     #sample using weights obtained from pixel intensities
     [(sel_r,sel_c)] = random.choices(coords,weights)
-    return sel_r,sel_c,image[(sel_r-gap):(sel_r+gap+1),(sel_c-gap):(sel_c+gap+1)]
+    return sel_r,sel_c,kernel*image[(sel_r-gap):(sel_r+gap+1),(sel_c-gap):(sel_c+gap+1)]
 
 #function to measure distance between random sample and reference vectors
 def find_distances(sample,refv,ksize,gap):
-    #sample is a matrix with odd
-    print(sample)
+    #put sample into 1D vector
+    sample_vec = []
+    for i in range(0,ksize):
+        for j in range(0,ksize):
+            sample_vec.append(sample[i][j])
+    #find the euclidean distance between sample and reference vectors
+    diff = np.power(sample_vec-refv,2)
+    dist = np.sqrt(np.sum(diff,axis=1))
     #the middle selected pixel is located
-    print(sample[gap,gap])
-    #the reference vectors are
-    print(refv)
+    # print(sample[gap,gap])
+    # print(sample_vec[ksize*gap+gap])
+    return dist
 
 #function for running competitive learning
 def competitive_learn_image(image,ksize,nrv,reps,kernel):
@@ -56,14 +62,16 @@ def competitive_learn_image(image,ksize,nrv,reps,kernel):
     # print(gap)
     somim = np.zeros((r-gap,c-gap))
     #initialize reference vectors with random numbers in refv between lowest and highest values in image
-    refv = np.random.randint(np.amin(image),np.amax(image),size=(nrv,ksize*ksize))
+    refv = np.array(np.random.randint(np.amin(image),np.amax(image),size=(nrv,ksize*ksize)),dtype='float')
     #loop as many times as reps through different points in image to move weights and learn competitively
     for t in range(0,reps):
         #sample a random point in image 
         s_r,s_c,sample = sample_image(image,gap,kernel)
         #take this random point and measure distance with reference vectors
         dists = find_distances(sample,refv,ksize,gap)
+        mindist_index = np.where(dists == min(dists))[0][0]
         #select best refv and reward
+        
         #punish others refv
         
     return somim
