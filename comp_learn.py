@@ -36,27 +36,38 @@ def sample_image(image,gap,kernel):
     return sel_r,sel_c,kernel*image[(sel_r-gap):(sel_r+gap+1),(sel_c-gap):(sel_c+gap+1)]
 
 #function to measure distance between random sample and reference vectors
-def find_distances(sample,refv,ksize,gap):
+def find_distances(sample,refv,ksize,gap,dist_type='euclidean'):
     #put sample into 1D vector
     sample_vec = []
     for i in range(0,ksize):
         for j in range(0,ksize):
             sample_vec.append(sample[i][j])
     #find the euclidean distance between sample and reference vectors
-    diff = np.power(sample_vec-refv,2)
-    dist = np.sqrt(np.sum(diff,axis=1))
+    if dist_type == 'euclidean':
+        diff = np.power(sample_vec-refv,2)
+        dist = np.sqrt(np.sum(diff,axis=1))
     #the middle selected pixel is located
     # print(sample[gap,gap])
     # print(sample_vec[ksize*gap+gap])
-    return dist
+    #find minimum
+    mindist_index = np.where(dist == min(dist))[0][0]
+    return dist,sample_vec,mindist_index
 
 #function to reward the closest reference vector
-def reward(refv,dists,mindist_index):
+def reward_punish(samv,refv,mindist_index,alpha,stype):
     #do something with closest refv
+    if stype == 'simple competitive':    #the simplest version of competitive learning
+        refv[mindist_index] = refv[mindist_index]+alpha*(samv-refv[mindist_index])  
 
-#function to punish the non-closest reference vector
-def punish(refv,dists,mindist_index):
-    #do something with non-closest refv's
+#function to sample all pixels and determine which neuron it belongs to
+def neuron_image(image,refv,ksize,gap):
+    r,c = image.shape
+    somim = np.zeros((r-gap-1,c-gap-1))
+    for i in range(gap,r-gap):
+        for j in range(gap,c-gap):
+            dist,samv,mindist_index = find_distances(image[(i-gap):(i+gap+1),(j-gap):(j+gap+1)],refv,ksize,gap)
+            somim[i-gap,j-gap]=mindist_index
+    return somim
 
 #function for running competitive learning
 def competitive_learn_image(image,ksize,nrv,reps,kernel):
@@ -66,22 +77,25 @@ def competitive_learn_image(image,ksize,nrv,reps,kernel):
     r,c = image.shape
     #create a kernel for looking at a local area in image
     gap = int(np.ceil(ksize/2 -1))
-    # print(gap)
-    somim = np.zeros((r-gap,c-gap))
     #initialize reference vectors with random numbers in refv between lowest and highest values in image
     refv = np.array(np.random.randint(np.amin(image),np.amax(image),size=(nrv,ksize*ksize)),dtype='float')
+    print(refv)
     #loop as many times as reps through different points in image to move weights and learn competitively
     for t in range(0,reps):
+        alpha = 1/(t+1)     #set the gain co-efficient
+        #print t for every multiple of 10
+        if t % 10 == 0:
+            print(t)
         #sample a random point in image 
         s_r,s_c,sample = sample_image(image,gap,kernel)
         #take this random point and measure distance with reference vectors
-        dists = find_distances(sample,refv,ksize,gap)
-        mindist_index = np.where(dists == min(dists))[0][0]
-        #select best refv and reward
-        reward(refv,dists,mindist_index)
-        #punish others refv
-        punish(refv,dists,mindist_index)
-    return somim
+        dists,samv,mindist_index = find_distances(sample,refv,ksize,gap)
+        #update refvs
+        reward_punish(samv,refv,mindist_index,alpha,stype='simple competitive')
+    #at the end of training
+    print(refv)
+
+    return neuron_image(image,refv,ksize,gap)
 
 def main(argv):
     im = cv2.imread(argv[1],-1)     #read in image
@@ -93,8 +107,18 @@ def main(argv):
     #competitive learning algorithm for an image
     ksize = 3
     nrv = 4
+    reps = 100
     # somim = competitive_learn_image(im,ksize,nrv,reps=10,kernel=np.ones((ksize,ksize)))
-    somim = competitive_learn_image(im,ksize,nrv,reps=1,kernel=np.ones((ksize,ksize)))
-    
+    somim = competitive_learn_image(im,ksize,nrv,reps,kernel=np.ones((ksize,ksize)))
+
+    print(somim.shape,im_scaled.shape)
+    plt.figure()
+    plt.subplot(121)
+    plt.imshow(im_scaled)
+    plt.subplot(122)
+    plt.imshow(somim)
+    plt.colorbar()
+    plt.show()
+
 if __name__=="__main__":
     main(sys.argv)
