@@ -66,7 +66,7 @@ def reward_punish(samv,refv,mindist_index,alpha,stype):
                 refv[i] = refv[i]-alpha*(samv-refv[i])
     if stype == 'self organizing':      #self organizing map
         for i in range(0,len(refv)):
-            refv[i] = refv[i]+alpha*(samv-refv[i])
+            refv[i] = refv[i] + alpha*(samv-refv[i])
 
 
 #function to sample all pixels and determine which neuron it belongs to
@@ -89,11 +89,10 @@ def competitive_learn_image(image,ksize,nrv,reps,kernel):
     gap = int(np.ceil(ksize/2 -1))
     #initialize reference vectors with random numbers in refv between lowest and highest values in image
     refv = np.array(np.random.randint(np.amin(image),np.amax(image),size=(nrv,ksize*ksize)),dtype='float')
-    print(refv)
     #loop as many times as reps through different points in image to move weights and learn competitively
     for t in range(0,reps):
-        alpha = 1/(t+1)     #set the gain co-efficient
-        #print t for every multiple of 10
+        alpha = 0.5/(t+1)     #set the gain co-efficient
+        #print t for every multiples
         if t % 100 == 0:
             print(t)
         #sample a random point in image 
@@ -104,7 +103,6 @@ def competitive_learn_image(image,ksize,nrv,reps,kernel):
         reward_punish(samv,refv,mindist_index,alpha,stype='self organizing')
     #at the end of training
     print(refv)
-
     return neuron_image(image,refv,ksize,gap)
 
 def main(argv):
@@ -117,7 +115,7 @@ def main(argv):
     #competitive learning algorithm for an image
     ksize = 3
     nrv = 4
-    reps = 1000
+    reps = 3000
     # somim = competitive_learn_image(im,ksize,nrv,reps=10,kernel=np.ones((ksize,ksize)))
     somim = competitive_learn_image(im,ksize,nrv,reps,kernel=np.ones((ksize,ksize)))
 
