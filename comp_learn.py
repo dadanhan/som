@@ -57,7 +57,17 @@ def find_distances(sample,refv,ksize,gap,dist_type='euclidean'):
 def reward_punish(samv,refv,mindist_index,alpha,stype):
     #do something with closest refv
     if stype == 'simple competitive':    #the simplest version of competitive learning
-        refv[mindist_index] = refv[mindist_index]+alpha*(samv-refv[mindist_index])  
+        refv[mindist_index] = refv[mindist_index]+alpha*(samv-refv[mindist_index])
+    if stype == 'abrasive competitive':     #extension to simple competitive
+        for i in range(0,len(refv)):
+            if i == mindist_index:
+                refv[i] = refv[i]+alpha*(samv-refv[i])
+            else:
+                refv[i] = refv[i]-alpha*(samv-refv[i])
+    if stype == 'self organizing':      #self organizing map
+        for i in range(0,len(refv)):
+            refv[i] = refv[i]+alpha*(samv-refv[i])
+
 
 #function to sample all pixels and determine which neuron it belongs to
 def neuron_image(image,refv,ksize,gap):
@@ -84,14 +94,14 @@ def competitive_learn_image(image,ksize,nrv,reps,kernel):
     for t in range(0,reps):
         alpha = 1/(t+1)     #set the gain co-efficient
         #print t for every multiple of 10
-        if t % 10 == 0:
+        if t % 100 == 0:
             print(t)
         #sample a random point in image 
         s_r,s_c,sample = sample_image(image,gap,kernel)
         #take this random point and measure distance with reference vectors
         dists,samv,mindist_index = find_distances(sample,refv,ksize,gap)
         #update refvs
-        reward_punish(samv,refv,mindist_index,alpha,stype='simple competitive')
+        reward_punish(samv,refv,mindist_index,alpha,stype='self organizing')
     #at the end of training
     print(refv)
 
@@ -107,7 +117,7 @@ def main(argv):
     #competitive learning algorithm for an image
     ksize = 3
     nrv = 4
-    reps = 100
+    reps = 1000
     # somim = competitive_learn_image(im,ksize,nrv,reps=10,kernel=np.ones((ksize,ksize)))
     somim = competitive_learn_image(im,ksize,nrv,reps,kernel=np.ones((ksize,ksize)))
 
