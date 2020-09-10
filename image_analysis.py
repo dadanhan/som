@@ -11,22 +11,32 @@ def main(argv):
     print(im.shape)
     #competitive learning algorithm
     ksizes = []
-    for i in range(1,20):
+    for i in range(1,10):
         ksizes.append(2*i+1)
-    nrv=4
+    nrv=5
     reps=1000
     for ksize in ksizes:
-        print(ksize)
-        somim = sf.competitive_learn_image('self organizing',im,ksize,nrv,reps,kernel=np.ones((ksize,ksize)))
+        print('ksize',ksize)
+        somim,refv,means,stds,iters = sf.competitive_learn_image('self organizing',im,ksize,nrv,reps,kernel=np.ones((ksize,ksize)))
         print(somim.shape,im.shape)
+        #plot and save results
         plt.figure()
-        plt.subplot(121)
+        plt.subplot(221)
         plt.imshow(im)
-        plt.subplot(122)
+        plt.subplot(222)
         plt.imshow(somim)
         plt.colorbar()
-        # plt.show()
-        plt.savefig('som_k'+str(ksize)+'.png',dpi=300)
+        plt.subplot(223)
+        plt.plot(iters,means)
+        plt.xlabel('t')
+        plt.ylabel('mean int.')
+        plt.subplot(224)
+        plt.plot(iters,stds)
+        plt.xlabel('t')
+        plt.ylabel('std int.')
+        plt.tight_layout()
+        plt.show()
+        # plt.savefig('./results/som_k'+str(ksize)+'.png',dpi=300)
 
 if __name__=="__main__":
     main(sys.argv)
