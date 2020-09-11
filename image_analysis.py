@@ -13,7 +13,7 @@ def main(argv):
     ksizes = []
     for i in range(1,10):
         ksizes.append(2*i+1)
-    nrv=5
+    nrv=4
     reps=1000
     for ksize in ksizes:
         print('ksize',ksize)

@@ -114,3 +114,46 @@ def competitive_learn_image(stype,image,ksize,nrv,reps,kernel):
     iters.append(t)
     print(refv[refvorder])
     return somim,refv,means,stds,iters
+
+#function to measure Euclidean distance between random sample and reference vectors
+def find_distances_general(sample,refv):
+    #get difference squared between sample and reference vectors
+    diff = np.power(sample-refv,2)
+    #normalize step
+    for j in range(0,len(refv)):
+        for i in range(0,len(sample)):
+            diff[j,i] = np.power(diff[j,i],1/(i+1))
+    #find Euclidean distance
+    dist = np.sqrt(np.sum(diff,axis=1))
+    # print('diff',diff)
+    mindist_index = np.where(dist == min(dist))[0][0] #find minimum
+    return dist,mindist_index
+
+#function to return neuron labels for samples from som training
+def label_samples(refv,samples):
+    labels = np.zeros(len(samples))
+    labels[:] = np.nan
+    for i in range(0,len(samples)):
+        dists,mindist_index = find_distances_general(samples[i],refv)
+        labels[i] = mindist_index
+    return labels
+
+#function for general som learning (not an image)
+def som_learn(samples,nrv,reps):
+    n,d = samples.shape
+    refv = np.empty((nrv,d))
+    refv[:] = np.nan
+    for i in range(d):
+        maxd = np.amax(samples[:,i])
+        mind = np.amin(samples[:,i])
+        for j in range(nrv):
+            refv[j,i] = np.random.randint(mind,maxd)
+    for t in range(0,reps):
+        alpha = 0.5/(t+1)
+        if t % 100 == 0:
+            print(t)
+        rand_index = random.randrange(0,len(samples))
+        dists,mindist_index = find_distances_general(samples[rand_index],refv)
+        reward_punish(samples[rand_index],refv,mindist_index,alpha,stype='self organizing')    #update refvs
+    samples_label = label_samples(refv,samples)
+    return samples_label
